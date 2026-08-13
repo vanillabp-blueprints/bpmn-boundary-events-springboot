@@ -1,0 +1,16 @@
+# Configuration of Camunda's web applications, which the Camunda 7 profile adds to this
+# application. This file is only on the classpath in that profile - the settings name the
+# adapter id 'camunda7', and an adapter id whose type is not in the classpath is a
+# configuration error VanillaBP refuses to start with.
+vanillabp:
+  adapters:
+    camunda7:
+      webapps:
+        # A demo administrator, so the blueprint can be operated without setting one up.
+        # An application with an identity provider of its own leaves this section out and
+        # the web applications use that instead.
+        admin-user:
+          id: demo
+          password: demo
+          first-name: Demo
+          last-name: User

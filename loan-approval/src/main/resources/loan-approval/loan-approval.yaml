@@ -1,0 +1,8 @@
+# Configuration of the workflow module 'loan-approval'.
+#
+# The file is named after the workflow module ID and is loaded automatically, with a
+# higher priority than application.yaml. Everything only this module needs belongs here -
+# that is what keeps a workflow module a self-contained application inside the
+# application.
+loan-approval:
+  rating-scale: 100

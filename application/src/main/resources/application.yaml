@@ -1,0 +1,23 @@
+# Only what is truly cross-cutting belongs here. Everything the workflow module needs is
+# in its own configuration file (loan-approval/loan-approval.yaml inside the module JAR).
+#
+# Note what is NOT here: nothing about the workflow itself. One adapter dependency and one
+# workflow module are enough for VanillaBP to derive the adapter, the workflow module and
+# the location its BPMN files are read from. The only vanillabp.* property in this
+# application configures Camunda's web applications, and it lives in the imported file
+# below because it belongs to one BPMS.
+spring:
+  # Present in the Camunda 7 profile only, where it configures the web applications
+  # served at /camunda. 'optional:' is what makes the other profiles ignore it.
+  config:
+    import: optional:classpath:camunda7-webapps.yaml
+  datasource:
+    url: jdbc:h2:mem:boundary;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+logging:
+  level:
+    blueprint.workflowmodule: INFO

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_loan_approval" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.31.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:process id="loan_approval" name="Loan approval" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_LoanRequested" name="Loan requested">
+      <bpmn:outgoing>Flow_ToRetrieveCreditRating</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_ToRetrieveCreditRating" sourceRef="StartEvent_LoanRequested" targetRef="ServiceTask_RetrieveCreditRating" />
+    <bpmn:serviceTask id="ServiceTask_RetrieveCreditRating" name="Retrieve credit rating">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="retrieveCreditRating" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToRetrieveCreditRating</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToRequestPartnerApproval</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_ToRequestPartnerApproval" sourceRef="ServiceTask_RetrieveCreditRating" targetRef="SendTask_RequestPartnerApproval" />
+    <!--
+      The asynchronous task, now with a deadline attached. Its job type is the task definition, and the job stays open
+      after the handler returned because that handler asks for the task's ID. The process
+      waits here until the application completes the task.
+    -->
+    <bpmn:sendTask id="SendTask_RequestPartnerApproval" name="Request partner approval">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="requestPartnerApproval" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToRequestPartnerApproval</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToInformCustomer</bpmn:outgoing>
+    </bpmn:sendTask>
+    <!--
+      The way out other than completing: the application cancels the task with this error
+      code, and the workflow leaves the user task here.
+    -->
+    <!--
+      NON-INTERRUPTING: 'cancelActivity="false"'. The token splits, the reminder is sent and
+      the task STAYS OPEN - the application hears nothing about a cancellation, because
+      nothing was canceled. The cycle fires twice.
+    -->
+    <bpmn:boundaryEvent id="BoundaryEvent_Reminder" name="Remind" cancelActivity="false" attachedToRef="SendTask_RequestPartnerApproval">
+      <bpmn:outgoing>Flow_ToSendReminder</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_Reminder">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">R2/PT1S</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_ToSendReminder" sourceRef="BoundaryEvent_Reminder" targetRef="ServiceTask_SendReminder" />
+    <bpmn:serviceTask id="ServiceTask_SendReminder" name="Send a reminder">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="sendReminder" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToSendReminder</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToReminderSent</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_ToReminderSent" sourceRef="ServiceTask_SendReminder" targetRef="EndEvent_ReminderSent" />
+    <bpmn:endEvent id="EndEvent_ReminderSent" name="Reminder sent">
+      <bpmn:incoming>Flow_ToReminderSent</bpmn:incoming>
+    </bpmn:endEvent>
+    <!--
+      INTERRUPTING (the default): when this timer fires the task is CANCELED and the token
+      leaves it. The application is told through @TaskEvent CANCELED, where the BPMS reports
+      it, and the workflow continues behind this event.
+    -->
+    <bpmn:boundaryEvent id="BoundaryEvent_Deadline" name="No answer in time" attachedToRef="SendTask_RequestPartnerApproval">
+      <bpmn:outgoing>Flow_ToNoteTimeout</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_Deadline">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT10S</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_ToInformCustomer" sourceRef="SendTask_RequestPartnerApproval" targetRef="ServiceTask_InformCustomer" />
+    <bpmn:serviceTask id="ServiceTask_InformCustomer" name="Inform customer">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="informCustomer" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToInformCustomer</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToLoanAssessed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_ToLoanAssessed" sourceRef="ServiceTask_InformCustomer" targetRef="EndEvent_LoanAssessed" />
+    <bpmn:endEvent id="EndEvent_LoanAssessed" name="Loan assessed">
+      <bpmn:incoming>Flow_ToLoanAssessed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_ToNoteTimeout" sourceRef="BoundaryEvent_Deadline" targetRef="ServiceTask_NoteTimeout" />
+    <bpmn:serviceTask id="ServiceTask_NoteTimeout" name="Note the deadline">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="noteTimeout" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_ToNoteTimeout</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToLoanTimedOut</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_ToLoanTimedOut" sourceRef="ServiceTask_NoteTimeout" targetRef="EndEvent_LoanTimedOut" />
+    <bpmn:endEvent id="EndEvent_LoanTimedOut" name="Nobody answered">
+      <bpmn:incoming>Flow_ToLoanTimedOut</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="loan_approval">
+      <bpmndi:BPMNShape id="StartEvent_LoanRequested_di" bpmnElement="StartEvent_LoanRequested">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="134" y="145" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_RetrieveCreditRating_di" bpmnElement="ServiceTask_RetrieveCreditRating">
+        <dc:Bounds x="240" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_RequestPartnerApproval_di" bpmnElement="SendTask_RequestPartnerApproval">
+        <dc:Bounds x="460" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_InformCustomer_di" bpmnElement="ServiceTask_InformCustomer">
+        <dc:Bounds x="620" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_LoanAssessed_di" bpmnElement="EndEvent_LoanAssessed">
+        <dc:Bounds x="772" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="759" y="145" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="BoundaryEvent_Reminder_di" bpmnElement="BoundaryEvent_Reminder">
+        <dc:Bounds x="442" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="437" y="35" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_SendReminder_di" bpmnElement="ServiceTask_SendReminder">
+        <dc:Bounds x="620" y="-60" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_ReminderSent_di" bpmnElement="EndEvent_ReminderSent">
+        <dc:Bounds x="772" y="-38" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="756" y="5" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToSendReminder_di" bpmnElement="Flow_ToSendReminder">
+        <di:waypoint x="460" y="62" />
+        <di:waypoint x="460" y="-20" />
+        <di:waypoint x="620" y="-20" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToReminderSent_di" bpmnElement="Flow_ToReminderSent">
+        <di:waypoint x="720" y="-20" />
+        <di:waypoint x="772" y="-20" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BoundaryEvent_Deadline_di" bpmnElement="BoundaryEvent_Deadline">
+        <dc:Bounds x="492" y="142" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="470" y="185" width="100" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_NoteTimeout_di" bpmnElement="ServiceTask_NoteTimeout">
+        <dc:Bounds x="620" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_LoanTimedOut_di" bpmnElement="EndEvent_LoanTimedOut">
+        <dc:Bounds x="772" y="262" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="757" y="305" width="80" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ToRetrieveCreditRating_di" bpmnElement="Flow_ToRetrieveCreditRating">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToRequestPartnerApproval_di" bpmnElement="Flow_ToRequestPartnerApproval">
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="460" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToInformCustomer_di" bpmnElement="Flow_ToInformCustomer">
+        <di:waypoint x="560" y="120" />
+        <di:waypoint x="620" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToLoanAssessed_di" bpmnElement="Flow_ToLoanAssessed">
+        <di:waypoint x="720" y="120" />
+        <di:waypoint x="772" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToNoteTimeout_di" bpmnElement="Flow_ToNoteTimeout">
+        <di:waypoint x="510" y="178" />
+        <di:waypoint x="510" y="280" />
+        <di:waypoint x="620" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToLoanTimedOut_di" bpmnElement="Flow_ToLoanTimedOut">
+        <di:waypoint x="720" y="280" />
+        <di:waypoint x="772" y="280" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

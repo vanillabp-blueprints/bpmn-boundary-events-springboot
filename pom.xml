@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.0</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>io.vanillabp.blueprint.bpmn-boundary-events</groupId>
+  <artifactId>bpmn-boundary-events</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Blueprint: boundary events</name>
+  <description>Interrupting and non-interrupting boundary events on one task, and what each of them means for the application.</description>
+
+  <modules>
+    <module>loan-approval</module>
+    <module>application</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>21</java.version>
+    <!-- All VanillaBP artifacts are version managed by the VanillaBP BOM. -->
+    <vanillabp.version>2.0.0-SNAPSHOT</vanillabp.version>
+    <!-- BPMS adapters are released independently of the platform, so they carry their own version. -->
+    <camunda7-adapter.version>2.0.0-SNAPSHOT</camunda7-adapter.version>
+    <camunda8-adapter.version>2.0.0-SNAPSHOT</camunda8-adapter.version>
+    <!--
+      Which BPMS the build runs on, handed to the tests below. Canceling a user task is
+      not supported by every BPMS, so one test has to know. This is the default matching
+      the default profile; the profiles of the workflow module override it.
+    -->
+    <blueprint.bpms>camunda7</blueprint.bpms>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vanillabp</groupId>
+        <artifactId>vanillabp-bom</artifactId>
+        <version>${vanillabp.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <!--
+        A blueprint must never show a deprecated API - it is copied, and what is copied
+        spreads. Making the compiler say so is cheaper than noticing it years later.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerArgs>
+            <arg>-Xlint:deprecation,removal</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <!-- Tests named *IT are integration tests and run in 'verify', not in 'test'. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <blueprint.bpms>${blueprint.bpms}</blueprint.bpms>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--
+    The BPMS is a Maven profile, never a code change: '-Pcamunda7' (the default) or
+    '-Pcamunda8'. Not a single Java file of this blueprint differs between them - only
+    which adapter is on the classpath and which directory the BPMN files are read from.
+
+    The profiles are declared by the modules which need the adapter: the application, and
+    the workflow module for the sake of its test. Declaring them here as well would only
+    repeat the choice in a place that does not act on it.
+  -->
+</project>

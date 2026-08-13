@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vanillabp.blueprint.bpmn-boundary-events</groupId>
+    <artifactId>bpmn-boundary-events</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>application</artifactId>
+  <name>The application</name>
+  <description>The Spring Boot application pulling in the workflow module and deciding which BPMS is used.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.vanillabp.blueprint.bpmn-boundary-events</groupId>
+      <artifactId>loan-approval</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>loan-approval</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!--
+    This is the only place a BPMS is named: the application decides which adapter is
+    loaded. The workflow module does not know and does not care.
+  -->
+  <profiles>
+    <profile>
+      <id>camunda7</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.camunda.community.vanillabp</groupId>
+          <artifactId>camunda7-adapter-spring-boot</artifactId>
+          <version>${camunda7-adapter.version}</version>
+        </dependency>
+        <!--
+          Camunda's Cockpit, Tasklist and Admin at /camunda. Optional in every sense: the
+          adapter works without it, and an application which does not want the web
+          applications leaves the dependency out.
+        -->
+        <dependency>
+          <groupId>org.camunda.community.vanillabp</groupId>
+          <artifactId>camunda7-adapter-spring-boot-webapps</artifactId>
+          <version>${camunda7-adapter.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <!--
+            The configuration of the web applications names the Camunda 7 adapter id, so it
+            may only be on the classpath while this profile is active. application.yaml
+            imports it optionally, which is why the other profiles need no counterpart.
+          -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.6.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>add-resource</goal>
+                </goals>
+                <configuration>
+                  <resources>
+                    <resource>
+                      <directory>src/main/camunda7/resources</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>camunda8</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.camunda.community.vanillabp</groupId>
+          <artifactId>camunda8-adapter-spring-boot</artifactId>
+          <version>${camunda8-adapter.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+</project>

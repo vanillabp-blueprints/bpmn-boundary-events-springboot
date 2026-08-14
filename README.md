@@ -15,10 +15,12 @@ difference decides what your code has to handle. This blueprint puts both on the
 The loan approval of the base blueprint. A partner has to approve the loan, and the task
 asking them carries two boundary events:
 
-- **Non-interrupting** (`cancelActivity="false"`), the reminder. It fires twice while the
-  task is open, sends a reminder each time and the task **stays open**. The token simply
-  splits: the reminder branch runs to its own end event while the main branch keeps
-  waiting.
+- **Non-interrupting** (`cancelActivity="false"`), the reminder. Its cycle asks for two
+  repetitions while the task is open, it sends a reminder each time and the task **stays
+  open**. The token simply splits: the reminder branch runs to its own end event while the
+  main branch keeps waiting. How many reminders actually go out before the deadline is the
+  engine's business, and it differs - the embedded Camunda 7 got one out in our runs, the
+  Camunda 8 cluster two.
 - **Interrupting** (the default), the deadline. When it fires, the task is **canceled** and
   the workflow leaves it for good, taking the path behind the event.
 
@@ -44,15 +46,15 @@ waiting to surprise somebody.
 
 Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-single-springboot):
 
-|            File            |                                      What is different                                       |
-|----------------------------|----------------------------------------------------------------------------------------------|
-| `loan_approval.bpmn`       | a task waiting for a partner with TWO boundary events on it, one interrupting and one not    |
-| `WorkflowTaskHandler.java` | the method of the waiting task plus one per branch behind an event                           |
-| `Workflow.java`            | `completeTask` in addition to `startWorkflow`                                                |
-| `Service.java`             | sends the request, sends reminders while it waits, answers the task, notes a missed deadline |
-| `Aggregate.java`           | `partnerApprovalTaskId`, `remindersSent` and `timedOut`                                      |
-| `LoanApprovalIT.java`      | a reminder leaving the task open, an answer in time, and the deadline ending the wait        |
-| `pom.xml`                  | hands the BPMS of the build to the tests, for the assertion about cancellations              |
+|            File            |                                       What is different                                        |
+|----------------------------|------------------------------------------------------------------------------------------------|
+| `loan_approval.bpmn`       | a task waiting for a partner with TWO boundary events on it, one interrupting and one not      |
+| `WorkflowTaskHandler.java` | the method of the waiting task plus one per branch behind an event                             |
+| `Workflow.java`            | `completeTask` in addition to `startWorkflow`                                                  |
+| `Service.java`             | sends the request, sends reminders while it waits, answers the task, notes a missed deadline   |
+| `Aggregate.java`           | `partnerApprovalTaskId`, `remindersSent`, `timedOut`, and `@DynamicUpdate` for the side branch |
+| `LoanApprovalIT.java`      | a reminder leaving the task open, an answer in time, and the deadline ending the wait          |
+| `pom.xml`                  | hands the BPMS of the build to the tests, for the assertion about cancellations                |
 
 ## Running it
 
@@ -114,7 +116,8 @@ Loan approval '0f7c…' waits for the partner, but not forever - the task carrie
   Approved -> http://localhost:8080/api/loan-approval/0f7c…/partner-approved/1a2b…
 ```
 
-Reminders go out while nothing happens, and the task stays open:
+Reminders go out while nothing happens, and the task stays open. How many arrive before the
+deadline is up to the engine:
 
 ```
 Reminder 1 for loan approval '0f7c…' - the partner is still expected to answer
@@ -171,9 +174,19 @@ receives the work. What separates them is the token. A non-interrupting event ad
 the reminder runs beside a task that is still open; an interrupting event takes the token
 away from the task, which is what makes the task disappear.
 
-That is also why a reminder must not touch what the open task is about to write: two
-branches of the same workflow may run at the same time, and both load and save the same
-aggregate. Here the reminder only counts, and the answer only writes its own attributes.
+That extra token is the part to think about before modelling one, and it is why
+`Aggregate` carries `@DynamicUpdate`. Two branches of the same workflow run at the same
+time and both save the aggregate: the reminder in a transaction of the BPMS, the answer in
+one the application opened. Writing different attributes does not keep them apart by itself,
+because JPA saves the whole row - the branch committing second writes back the values it
+read at its start, and what the other branch committed in between is gone. No exception, no
+log line, and the process behaves exactly as modelled while the data does not.
+
+`@DynamicUpdate` makes Hibernate write only the columns a branch changed, which is enough
+here: the reminder counts, the answer writes the answer. Two branches writing the SAME
+attribute is a different problem and needs a `@Version` column or a model that does not do
+it. This cost us a red CI job before it was understood, and it is recorded as G3 in the
+monorepo's `GAPS.md`.
 
 The tests wait for the aggregate rather than for a clock. A timer fires when the BPMS gets
 to it, so a test that sleeps for exactly three seconds is a test that fails on a slow

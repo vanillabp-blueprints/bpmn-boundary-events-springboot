@@ -87,11 +87,18 @@ identical in every blueprint - copy them unchanged.
    and keep the BPMN error code there as a constant.
 8. Add the callback endpoint carrying the task id, and log the URLs continuing the process
    when the request goes out.
-9. Copy `LoanApprovalIT` and write one test per way the task ends.
+9. Copy `LoanApprovalIT` and write one test per way the task ends. Do not make a test wait
+   for a fixed number of repetitions of a cyclic timer: `R2/PT1S` says what the model asks
+   for, not what an engine gets done before the deadline, and that number differs between
+   BPMS.
 
 Two branches of one workflow may run at the same time - that is what a non-interrupting
-event creates - and both load and save the same workflow aggregate. Keep what each branch
-writes disjoint, or the later save wins and the other branch's work is gone.
+event creates - and both load and save the same workflow aggregate. Keeping what each branch
+writes disjoint is necessary and not sufficient: JPA saves the whole row, so the branch that
+commits second writes back the values it read at its start and the other branch's work is
+gone, silently. **Put `@DynamicUpdate` on the aggregate of a workflow with a non-interrupting
+boundary event**, which makes Hibernate write only the columns that changed. Two branches
+writing the same attribute needs a `@Version` column instead, or a different model.
 
 Never rely on the cancellation reaching your handler: not every BPMS reports it. Answering
 a task that is gone is a no-op, so the correctness of your code must not depend on hearing

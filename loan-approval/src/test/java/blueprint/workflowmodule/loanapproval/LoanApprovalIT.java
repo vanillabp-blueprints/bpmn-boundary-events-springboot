@@ -78,7 +78,11 @@ public class LoanApprovalIT extends WorkflowModuleTest {
     final var loanRequestId = UUID.randomUUID().toString();
     final var taskId = startAndAwaitPartnerRequest(loanRequestId);
 
-    // the reminder ran ...
+    // A reminder ran. How many more follow is the engine's business - the cycle asks for
+    // two, an embedded engine got one out before the deadline in our runs - so the test
+    // waits for the first and answers while another one may still be running. That overlap
+    // is the normal case for a non-interrupting event, and it stays harmless because the
+    // aggregate is written column by column: see @DynamicUpdate on Aggregate.
     final var reminded = awaitAggregate(
         loanApprovals,
         loanRequestId,

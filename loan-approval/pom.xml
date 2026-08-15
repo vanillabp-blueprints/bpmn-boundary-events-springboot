@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.vanillabp.blueprint.bpmn-boundary-events</groupId>
+    <groupId>io.vanillabp.blueprint.bpmn-boundary-events-springboot</groupId>
     <artifactId>bpmn-boundary-events</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>

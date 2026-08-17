@@ -5,6 +5,7 @@ import static org.awaitility.Awaitility.await;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.awaitility.core.ConditionTimeoutException;
@@ -62,6 +63,31 @@ public abstract class WorkflowModuleTest {
       final String id,
       final Predicate<A> condition) {
 
+    return awaitAggregate(repository::findById, id, condition);
+
+  }
+
+  /**
+   * Waits until the workflow aggregate exists and satisfies the given condition, reading it
+   * through a function rather than a repository.
+   *
+   * <p>
+   * For an application whose aggregates are not managed by a repository at all: it brings a
+   * persistence of its own, and then the way to read an aggregate is whatever that
+   * persistence offers.
+   * </p>
+   *
+   * @param <A>       The type of the workflow aggregate.
+   * @param load      Loads the workflow aggregate by its ID.
+   * @param id        The aggregate's ID, which is the natural ID of the business case.
+   * @param condition What the process is expected to have achieved.
+   * @return The aggregate as it satisfied the condition.
+   */
+  protected <A> A awaitAggregate(
+      final Function<String, Optional<A>> load,
+      final String id,
+      final Predicate<A> condition) {
+
     final var lastSeen = new AtomicReference<Optional<A>>(Optional.empty());
 
     try {
@@ -70,9 +96,9 @@ public abstract class WorkflowModuleTest {
           .atMost(TIMEOUT)
           .pollInterval(POLL_INTERVAL)
           .until(() -> {
-            // A fresh transaction per poll - otherwise the writes of the BPMS' own
-            // transactions would never become visible.
-            final var found = repository.findById(id);
+            // A fresh read per poll - otherwise the writes of the BPMS' own transactions
+            // would never become visible.
+            final var found = load.apply(id);
             lastSeen.set(found);
             return found
                 .filter(condition)
@@ -114,6 +140,23 @@ public abstract class WorkflowModuleTest {
       final String id) {
 
     return awaitAggregate(repository, id, aggregate -> true);
+
+  }
+
+  /**
+   * Waits until the workflow aggregate exists at all, reading it through a function rather
+   * than a repository.
+   *
+   * @param <A>  The type of the workflow aggregate.
+   * @param load Loads the workflow aggregate by its ID.
+   * @param id   The aggregate's ID.
+   * @return The aggregate.
+   */
+  protected <A> A awaitAggregate(
+      final Function<String, Optional<A>> load,
+      final String id) {
+
+    return awaitAggregate(load, id, aggregate -> true);
 
   }
 

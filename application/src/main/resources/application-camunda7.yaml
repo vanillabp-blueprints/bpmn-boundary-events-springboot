@@ -1,7 +1,8 @@
-# Configuration of Camunda's web applications, which the Camunda 7 profile adds to this
-# application. This file is only on the classpath in that profile - the settings name the
-# adapter id 'camunda7', and an adapter id whose type is not in the classpath is a
-# configuration error VanillaBP refuses to start with.
+# Everything specific to Camunda 7, loaded only while the 'camunda7' profile is active. The
+# Maven profile of the same name activates it, so the BPMS is chosen once.
+#
+# Camunda's web applications are served at /camunda by the adapter module this profile adds,
+# and they are configured here because the settings name the adapter id.
 vanillabp:
   adapters:
     camunda7:

@@ -70,21 +70,22 @@ Running it on another BPMS is a Maven profile, not one line of Java changes:
 mvn install verify -Pcamunda8
 ```
 
-Camunda 8 is a remote engine, so a cluster has to run and be pointed at. Start one, then
-add its address to `application/src/main/resources/application.yaml` and to
-`loan-approval/src/test/resources/application.yaml`:
+Camunda 8 is a remote engine, so a cluster has to run. Start one; its address, and everything
+else specific to that engine, lives in its profile file
+`application/src/main/resources/application-camunda8.yaml`, with a copy for the module's own
+test:
 
 ```yaml
 vanillabp:
   adapters:
     camunda8:
+      # Camunda 8 is a remote engine: point this at your cluster.
       rest-address: http://localhost:8080
-      # Nothing else is needed: this adapter keeps workflow modules apart by nothing at all
-      # ('name-clash-avoidance: none') unless told otherwise, because a cluster started from
-      # the stock image has multi-tenancy switched off and rejects a tenant per module. The
-      # adapter warns about it while booting - with one workflow module the identifiers are
-      # unique anyway. Set 'name-clash-avoidance: use-prefix' to have VanillaBP prefix them.
 ```
+
+That file is loaded because the Maven profile `camunda8` sets the Spring profile of the same
+name, so the engine is chosen once, on the Maven command line, and the build, the tests and
+`spring-boot:run` all follow it.
 
 Start the application:
 
@@ -150,13 +151,15 @@ http://localhost:8080/camunda
 
 Log in with `demo` / `demo`. Cockpit shows both tokens while the reminder branch runs, which
 is the clearest picture of what non-interrupting means. The user comes from
-`application/src/main/camunda7/resources/camunda7-webapps.yaml` and exists so that the
+`application/src/main/resources/application-camunda7.yaml` and exists so that the
 blueprint can be operated without setting one up; an application with an identity provider
 of its own leaves that section out.
 
-The Camunda 8 profile ships neither the dependency nor that file. Its tooling is part of
-the cluster, and the file names a Camunda 7 adapter id, which VanillaBP would rightly
-refuse to start with.
+The Camunda 8 profile brings neither the dependency nor those settings into effect. Its
+tooling is part of the cluster, and the file naming a Camunda 7 adapter id is simply not
+loaded there - a profile file applies to its own engine and to no other. Naming an adapter
+id whose adapter is not on the classpath is a configuration error VanillaBP refuses to
+start with, and the profiles are what keeps that from happening.
 
 ## How it works
 

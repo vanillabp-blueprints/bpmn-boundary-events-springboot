@@ -62,6 +62,9 @@
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
+      <properties>
+        <bpms>camunda7</bpms>
+      </properties>
       <dependencies>
         <dependency>
           <groupId>org.camunda.community.vanillabp</groupId>
@@ -79,37 +82,12 @@
           <version>${camunda7-adapter.version}</version>
         </dependency>
       </dependencies>
-      <build>
-        <plugins>
-          <!--
-            The configuration of the web applications names the Camunda 7 adapter id, so it
-            may only be on the classpath while this profile is active. application.yaml
-            imports it optionally, which is why the other profiles need no counterpart.
-          -->
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.6.1</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>add-resource</goal>
-                </goals>
-                <configuration>
-                  <resources>
-                    <resource>
-                      <directory>src/main/camunda7/resources</directory>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
     <profile>
       <id>camunda8</id>
+      <properties>
+        <bpms>camunda8</bpms>
+      </properties>
       <dependencies>
         <dependency>
           <groupId>org.camunda.community.vanillabp</groupId>

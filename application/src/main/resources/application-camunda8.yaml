@@ -1,0 +1,7 @@
+# Everything specific to Camunda 8, loaded only while the 'camunda8' profile applies. The
+# Maven profile of the same name activates it, so the BPMS is chosen once.
+vanillabp:
+  adapters:
+    camunda8:
+      # Camunda 8 is a remote engine: point this at your cluster.
+      rest-address: http://localhost:8080

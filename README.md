@@ -93,12 +93,12 @@ Start the application:
 mvn -pl application spring-boot:run
 ```
 
-Booting logs a warning per workflow module: both Camunda adapters start out with
-`name-clash-avoidance: none`, so nothing keeps the identifiers of one workflow module apart
-from those of another, and the adapter asks for a decision instead of picking one. One module
-cannot collide with itself, so this blueprint leaves it at that. Answering the question is one
-property, `vanillabp.adapters.<id>.accept-unscoped-identifiers: true`, and the modes a BPMS
-offers are in
+Nothing about identifiers shows up at startup: the BPMS profiles of this blueprint set
+`name-clash-avoidance: use-prefix`, so VanillaBP puts the workflow module ID in front of every
+identifier before it reaches the engine and takes it off again on the way back. The BPMN files,
+the business code and the rest of the configuration keep the plain names, and no tenant is
+involved, which matters on a BPMS licensed per tenant. What the modes are and what each of them
+costs is in
 [the wiki](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-modules#how-name-clashes-are-avoided).
 
 Start a loan approval. This is the only URL you need:

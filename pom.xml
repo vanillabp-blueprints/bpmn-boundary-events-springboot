@@ -87,6 +87,12 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
+            <!-- The BPMS profile of the build, for the same reason surefire gets it: an
+                 integration test has to read the configuration the application reads,
+                 'application-<bpms>.yaml' included. Without it the profile files are never
+                 loaded and the adapter is only configured where the environment happens to
+                 provide it. -->
+            <spring.profiles.active>${bpms}</spring.profiles.active>
             <blueprint.bpms>${blueprint.bpms}</blueprint.bpms>
           </systemPropertyVariables>
         </configuration>

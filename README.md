@@ -188,8 +188,8 @@ log line, and the process behaves exactly as modelled while the data does not.
 `@DynamicUpdate` makes Hibernate write only the columns a branch changed, which is enough
 here: the reminder counts, the answer writes the answer. Two branches writing the SAME
 attribute is a different problem and needs a `@Version` column or a model that does not do
-it. This cost us a red CI job before it was understood, and it is recorded as G3 in the
-monorepo's `GAPS.md`.
+it. This cost a red CI job before it was understood, and the framework describes the second
+writer and the ways of dealing with it under [Two writers on one aggregate](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-aggregates#two-writers-on-one-aggregate).
 
 The tests wait for the aggregate rather than for a clock. A timer fires when the BPMS gets
 to it, so a test that sleeps for exactly three seconds is a test that fails on a slow

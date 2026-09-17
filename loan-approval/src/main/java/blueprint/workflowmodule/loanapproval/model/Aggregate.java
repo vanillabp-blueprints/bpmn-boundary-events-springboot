@@ -2,6 +2,7 @@ package blueprint.workflowmodule.loanapproval.model;
 
 import org.hibernate.annotations.DynamicUpdate;
 
+import io.vanillabp.spi.service.NoSyncWithBPMS;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -35,9 +36,23 @@ import lombok.NoArgsConstructor;
  * annotation solves: that needs a {@code @Version} column, or a model that does not do it.
  * </p>
  *
+ * <p>
+ * <strong>None of this data reaches the BPMS.</strong> No expression in the model reads
+ * an attribute of the aggregate. Both boundary events are timers written into the model
+ * as fixed values, {@code R2/PT1S} for the reminder and {@code PT10S} for the deadline,
+ * so the BPMS already knows when they fire and asks the aggregate nothing. The class is
+ * therefore annotated {@code @NoSyncWithBPMS}, and no attribute needs
+ * {@code @SyncWithBPMS}. The BPMS holds the workflow aggregate's ID, which VanillaBP
+ * always shares because it is how it finds the aggregate again. Everything else, from the
+ * task id to the number of reminders sent, stays in the application.
+ * </p>
+ *
  * @see <a href=
  *      "https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-aggregates">Workflow
  *      aggregates</a>
+ * @see <a href=
+ *      "https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-aggregates#fine-grained-control-over-attributes-synchronized-to-the-bpms">Sharing
+ *      workflow-aggregate data</a>
  */
 @Entity
 @DynamicUpdate
@@ -46,6 +61,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@NoSyncWithBPMS
 public class Aggregate {
 
   /**

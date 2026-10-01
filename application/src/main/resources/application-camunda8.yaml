@@ -10,3 +10,11 @@ vanillabp:
       name-clash-avoidance: use-prefix
       # Camunda 8 is a remote engine: point this at your cluster.
       rest-address: http://localhost:8080
+      # This adapter leases the jobs it holds from the activation to the answer. The cluster
+      # then takes the answer of the current activation only, so a run whose lock ran out
+      # while it was working cannot overwrite what the newer run wrote. The key has no
+      # default, because a lease cannot be taken back. The adapter recommends this value, so
+      # the blueprint shows it. On a cluster before 8.10 the key is read and does nothing, so
+      # one configuration serves either line:
+      # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
+      job-lease: use

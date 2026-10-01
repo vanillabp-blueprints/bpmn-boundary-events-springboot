@@ -81,6 +81,11 @@ vanillabp:
     camunda8:
       # Camunda 8 is a remote engine: point this at your cluster.
       rest-address: http://localhost:8080
+      # This adapter leases the jobs it holds, so the cluster takes the answer of the current
+      # activation only. The key has no default, because a lease cannot be taken back. This is
+      # the value the adapter recommends:
+      # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
+      job-lease: use
 ```
 
 That file is loaded because the Maven profile `camunda8` sets the Spring profile of the same

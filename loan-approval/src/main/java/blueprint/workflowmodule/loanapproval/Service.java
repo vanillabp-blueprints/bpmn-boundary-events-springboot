@@ -250,7 +250,7 @@ public class Service {
    * @param loanRequestId The natural id of the loan request.
    * @return The loan approval, if it exists.
    */
-  public Optional<Aggregate> getLoanApproval(
+  public Optional<Aggregate> get(
       final String loanRequestId) {
 
     return loanApprovals.findById(loanRequestId);

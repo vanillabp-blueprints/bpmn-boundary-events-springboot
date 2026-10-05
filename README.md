@@ -84,7 +84,7 @@ vanillabp:
       # This adapter leases the jobs it holds, so the cluster takes the answer of the current
       # activation only. The key has no default, because a lease cannot be taken back. This is
       # the value the adapter recommends:
-      # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
+      # https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
       job-lease: use
 ```
 

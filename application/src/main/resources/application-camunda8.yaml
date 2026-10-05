@@ -16,5 +16,5 @@ vanillabp:
       # default, because a lease cannot be taken back. The adapter recommends this value, so
       # the blueprint shows it. On a cluster before 8.10 the key is read and does nothing, so
       # one configuration serves either line:
-      # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
+      # https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
       job-lease: use

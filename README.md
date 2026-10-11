@@ -5,42 +5,43 @@
 [![Apache License V.2](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
 Something happens while a task is open: a deadline passes, a reminder is due, a customer
-withdraws. A boundary event is how the process reacts, and it comes in two kinds whose
+withdraws. With a boundary event the process reacts to it. There are two kinds, and the
 difference decides what your code has to handle. This blueprint puts both on the same task.
 
 ## What this blueprint shows
 
 ![The loan approval process, with a non-interrupting reminder and an interrupting deadline on one task](docs/loan_approval.png)
 
-The loan approval of the base blueprint. A partner has to approve the loan, and the task
-asking them carries two boundary events:
+The loan approval of the base blueprint. A partner has to approve the loan. The task which asks
+the partner carries two boundary events:
 
 - **Non-interrupting** (`cancelActivity="false"`), the reminder. Its cycle asks for two
-  repetitions while the task is open, it sends a reminder each time and the task **stays
-  open**. The token simply splits: the reminder branch runs to its own end event while the
-  main branch keeps waiting. How many reminders actually go out before the deadline is the
-  engine's business, and it differs - the embedded Camunda 7 got one out in our runs, the
-  Camunda 8 cluster two.
-- **Interrupting** (the default), the deadline. When it fires, the task is **canceled** and
-  the workflow leaves it for good, taking the path behind the event.
+  repetitions while the task is open. It sends a reminder each time, and the task **stays
+  open**. A token marks where a process instance currently is, and here it simply splits. The
+  reminder branch runs to its own end event, and the main branch keeps waiting. How many
+  reminders really go out before the deadline is up to the engine, and it differs. In our runs
+  the embedded Camunda 7 sent one, the Camunda 8 cluster two.
+- **Interrupting** (the default), the deadline. When it fires, the task is **canceled**. The
+  workflow leaves it for good and takes the path behind the event.
 
-For the application the difference is what it must handle:
+For the application, the difference is what it has to handle:
 
 - The non-interrupting one is an ordinary task on a side branch. Nothing is canceled, so
-  nothing is reported as canceled, and the task id the application kept still works
-  afterwards - the test proves exactly that by answering the task after a reminder went out.
-- The interrupting one ends the wait. The open task is gone, and the handler is called once
-  more with `@TaskEvent CANCELED` so it can drop what it kept. **Not every BPMS reports
-  that**, so no code may depend on it: answering a task that is gone is a no-op either way.
-  Which engines deliver cancellations is on
-  [the adapter's wiki page](https://github.com/vanillabp/adapter-platform-integration/wiki/BPMS-adapters),
-  and this blueprint asserts the cleared id only where it is delivered.
+  nothing is reported as canceled. The task id the application kept still works afterwards. The
+  test proves exactly that: it answers the task after a reminder went out.
+- The interrupting one ends the wait. The open task is gone. The handler is called once more
+  with `@TaskEvent CANCELED`, so it can drop what it kept. **Not every BPMS (business process
+  management system) reports that**, so no code may rely on it. Answering a task that is gone
+  does nothing either way.
+  [The adapter's wiki page](https://github.com/vanillabp/adapter-platform-integration/wiki/BPMS-adapters)
+  says which engines deliver cancellations. This blueprint asserts the cleared id only where it
+  is delivered.
 
-The two events also compete, which is worth seeing: the reminder cycle is `R2/PT1S` and the
-deadline `PT10S`, far enough apart that the order is not a matter of luck. Timers fire when
-the BPMS gets to them, and an engine which polls for due jobs may execute two of them in one
-sweep - a process whose correctness depends on which of two events comes first is a process
-waiting to surprise somebody.
+The two events also compete, and that is worth seeing. The reminder cycle is `R2/PT1S` and the
+deadline `PT10S`. They are far enough apart that the order is not a matter of luck. Timers fire
+when the BPMS gets to them. An engine which polls for due jobs may run two of them in one
+sweep. If a process is only correct when one of two events comes first, it will surprise
+somebody one day.
 
 ## Delta to the base blueprint
 
@@ -64,16 +65,15 @@ Requires a JDK 21 or newer. Camunda 7 is embedded, so nothing else has to run:
 mvn install verify
 ```
 
-Running it on another BPMS is a Maven profile, not one line of Java changes:
+To run it on another BPMS, pick another Maven profile. Not one line of Java changes:
 
 ```bash
 mvn install verify -Pcamunda8
 ```
 
-Camunda 8 is a remote engine, so a cluster has to run. Start one; its address, and everything
-else specific to that engine, lives in its profile file
-`application/src/main/resources/application-camunda8.yaml`, with a copy for the module's own
-test:
+Camunda 8 is a remote engine, so a cluster has to run. Start one. Its address and everything
+else specific to that engine are in its profile file
+`application/src/main/resources/application-camunda8.yaml`. The module's own test has a copy:
 
 ```yaml
 vanillabp:
@@ -88,8 +88,8 @@ vanillabp:
       job-lease: use
 ```
 
-That file is loaded because the Maven profile `camunda8` sets the Spring profile of the same
-name, so the engine is chosen once, on the Maven command line, and the build, the tests and
+The file is loaded because the Maven profile `camunda8` sets the Spring profile of the same
+name. So you choose the engine once, on the Maven command line. The build, the tests and
 `spring-boot:run` all follow it.
 
 Start the application:
@@ -98,13 +98,13 @@ Start the application:
 mvn -pl application spring-boot:run
 ```
 
-Nothing about identifiers shows up at startup: the BPMS profiles of this blueprint set
-`name-clash-avoidance: use-prefix`, so VanillaBP puts the workflow module ID in front of every
-identifier before it reaches the engine and takes it off again on the way back. The BPMN files,
-the business code and the rest of the configuration keep the plain names, and no tenant is
-involved, which matters on a BPMS licensed per tenant. What the modes are and what each of them
-costs is in
-[the wiki](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-modules#how-name-clashes-are-avoided).
+You see nothing about identifiers at startup. The BPMS profiles of this blueprint set
+`name-clash-avoidance: use-prefix`. So VanillaBP puts the workflow module ID in front of every
+identifier before it reaches the engine, and takes it off again on the way back. The BPMN
+files, the business code and the rest of the configuration keep the plain names. No tenant is
+involved, which matters on a BPMS licensed per tenant.
+[The wiki](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-modules#how-name-clashes-are-avoided)
+explains the modes and what each of them costs.
 
 Start a loan approval. This is the only URL you need:
 
@@ -122,15 +122,15 @@ Loan approval '0f7c…' waits for the partner, but not forever - the task carrie
   Approved -> http://localhost:8080/api/loan-approval/0f7c…/partner-approved/1a2b…
 ```
 
-Reminders go out while nothing happens, and the task stays open. How many arrive before the
-deadline is up to the engine:
+Reminders go out while nothing happens, and the task stays open. The engine decides how many
+arrive before the deadline:
 
 ```
 Reminder 1 for loan approval '0f7c…' - the partner is still expected to answer
 Reminder 2 for loan approval '0f7c…' - the partner is still expected to answer
 ```
 
-Open the URL any time before the deadline and the answer is still accepted:
+Open the URL any time before the deadline, and the answer is still accepted:
 
 ```
 The partner approved loan approval '0f7c…'
@@ -144,9 +144,9 @@ The partner request of loan approval '4b21…' was canceled
 Nobody answered for loan approval '4b21…' in time
 ```
 
-The first of those two lines is the cancellation reaching the same handler that sent the
-request - on a BPMS that reports cancellations. Opening the URL afterwards answers that this
-request is not open any more, which the application decides on its own.
+The first of those two lines is the cancellation. It reaches the same handler that sent the
+request, on a BPMS that reports cancellations. If you open the URL afterwards, the answer is
+that this request is not open any more. The application decides that on its own.
 
 Camunda 7 serves its own web applications, and the `camunda7` profile of this blueprint
 configures a user for them. They show both tokens while the reminder branch runs, which is the
@@ -165,28 +165,28 @@ the
 | `.../loanapproval/model/Aggregate.java`                                                | the task id, the answer and whether the deadline ran out                                       |
 | `loan-approval/src/test/.../LoanApprovalIT.java`                                       | answered in time, and not answered at all                                                      |
 
-What the two events have in common: the BPMS decides when they fire and the application only
-receives the work. What separates them is the token. A non-interrupting event adds one, so
-the reminder runs beside a task that is still open; an interrupting event takes the token
-away from the task, which is what makes the task disappear.
+What the two events have in common: the BPMS decides when they fire, and the application only
+receives the work. The token separates them. A non-interrupting event adds one, so the reminder
+runs beside a task which is still open. An interrupting event takes the token away from the
+task, and that makes the task disappear.
 
-That extra token is the part to think about before modelling one, and it is why
-`Aggregate` carries `@DynamicUpdate`. Two branches of the same workflow run at the same
-time and both save the aggregate: the reminder in a transaction of the BPMS, the answer in
-one the application opened. Writing different attributes does not keep them apart by itself,
-because JPA saves the whole row - the branch committing second writes back the values it
-read at its start, and what the other branch committed in between is gone. No exception, no
-log line, and the process behaves exactly as modelled while the data does not.
+Think about that extra token before you model one. It is why `Aggregate` carries
+`@DynamicUpdate`. Two branches of the same workflow run at the same time, and both save the
+aggregate. The reminder saves it in a transaction of the BPMS, the answer in one the
+application opened. Writing different attributes does not keep them apart by itself, because
+JPA (Jakarta Persistence) saves the whole row. The branch which commits second writes back the
+values it read at its start. What the other branch committed in between is gone. There is no
+exception and no log line. The process behaves exactly as modelled, but the data does not.
 
-`@DynamicUpdate` makes Hibernate write only the columns a branch changed, which is enough
-here: the reminder counts, the answer writes the answer. Two branches writing the SAME
-attribute is a different problem and needs a `@Version` column or a model that does not do
-it. This cost a red CI job before it was understood, and the framework describes the second
-writer and the ways of dealing with it under [Two writers on one aggregate](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-aggregates#two-writers-on-one-aggregate).
+`@DynamicUpdate` makes Hibernate write only the columns a branch changed. That is enough here:
+the reminder counts, and the answer writes the answer. Two branches which write the SAME
+attribute are a different problem. That needs a `@Version` column, or a model which does not do
+it. This cost a red CI job before anybody understood it. The framework describes the second
+writer and the ways to deal with it under
+[Two writers on one aggregate](https://github.com/vanillabp/adapter-platform-integration/wiki/Workflow-aggregates#two-writers-on-one-aggregate).
 
-The tests wait for the aggregate rather than for a clock. A timer fires when the BPMS gets
-to it, so a test that sleeps for exactly three seconds is a test that fails on a slow
-machine.
+The tests wait for the aggregate, not for a clock. A timer fires when the BPMS gets to it. So a
+test that sleeps for exactly three seconds fails on a slow machine.
 
 ## Documentation
 

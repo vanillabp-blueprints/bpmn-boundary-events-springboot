@@ -23,25 +23,25 @@ Blueprint-specific names, each occurring in more than one place:
 |           Name           |                                                 Where it occurs                                                 |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------|
 | `requestPartnerApproval` | the `@WorkflowTask` method, the Camunda 7 `camunda:delegateExpression` and the Camunda 8 `zeebe:taskDefinition` |
-| `partner-rejected`       | the constant `Workflow.PARTNER_REJECTED` and the `errorCode` of `bpmn:error` in the model                       |
 | `informCustomer`         | the `@WorkflowTask` method behind the waiting task and the task definition of that service task                 |
-| `noteRejection`          | the `@WorkflowTask` method on the error path and the task definition of that service task                       |
+| `sendReminder`           | the `@WorkflowTask` method behind the non-interrupting timer and the task definition of that service task       |
+| `noteTimeout`            | the `@WorkflowTask` method behind the interrupting timer and the task definition of that service task           |
 
-The error code is the contract between code and model. If the two drift apart, the boundary
-event does not catch the canceled task, and the workflow ends as an incident.
+Both timers live in the model only: the cycle of the reminder and the deadline. The code names
+neither of them.
 
 ## Core files
 
-|                                            File                                            |                                                  Why it matters                                                   |
-|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `loan-approval/src/main/resources/loan-approval/processes/<adapter-id>/loan_approval.bpmn` | the timer catch event, the waiting task and the INTERRUPTING timer boundary event on it                           |
-| `loan-approval/src/main/java/.../loanapproval/WorkflowTaskHandler.java`                    | the `@WorkflowTask` method of that task: aggregate, `@TaskId`, `@TaskEvent`. Returning does NOT complete the task |
-| `loan-approval/src/main/java/.../loanapproval/Workflow.java`                               | `completeTask`. Nothing in the application cancels the task here, the timer does that                             |
-| `loan-approval/src/main/java/.../loanapproval/Service.java`                                | sends the request once, keeps the task id, answers the task when the surrounding system replies                   |
-| `loan-approval/src/main/java/.../loanapproval/PartnerApprovalClient.java`                  | the port to the surrounding system, so a test can put a simulator in its place                                    |
-| `loan-approval/src/main/java/.../loanapproval/ApiController.java`                          | the callback the answer arrives at, carrying the task id                                                          |
-| `loan-approval/src/main/java/.../loanapproval/model/Aggregate.java`                        | `partnerApprovalTaskId`, plus the attributes the service tasks behind the waiting task write                      |
-| `loan-approval/src/test/java/.../LoanApprovalIT.java`                                      | one test per way the task ends: still open, completed, canceled                                                   |
+|                                            File                                            |                                                   Why it matters                                                    |
+|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `loan-approval/src/main/resources/loan-approval/processes/<adapter-id>/loan_approval.bpmn` | the waiting task, a NON-INTERRUPTING timer boundary event for the reminder and an INTERRUPTING one for the deadline |
+| `loan-approval/src/main/java/.../loanapproval/WorkflowTaskHandler.java`                    | the `@WorkflowTask` method of that task: aggregate, `@TaskId`, `@TaskEvent`. Returning does NOT complete the task   |
+| `loan-approval/src/main/java/.../loanapproval/Workflow.java`                               | `completeTask`. Nothing in the application cancels the task here, the timer does that                               |
+| `loan-approval/src/main/java/.../loanapproval/Service.java`                                | sends the request once, keeps the task id, answers the task when the surrounding system replies                     |
+| `loan-approval/src/main/java/.../loanapproval/PartnerApprovalClient.java`                  | the port to the surrounding system, so a test can put a simulator in its place                                      |
+| `loan-approval/src/main/java/.../loanapproval/ApiController.java`                          | the callback the answer arrives at, carrying the task id                                                            |
+| `loan-approval/src/main/java/.../loanapproval/model/Aggregate.java`                        | `partnerApprovalTaskId`, plus the attributes the service tasks behind the waiting task write                        |
+| `loan-approval/src/test/java/.../LoanApprovalIT.java`                                      | one test each: a reminder with the task still open, an answer in time, the deadline                                 |
 
 ## Boilerplate files
 
@@ -83,8 +83,8 @@ in every blueprint. Copy them unchanged.
    `@Transactional`, never the ones the task handler calls.
 6. Let the answering method reject a task id which is not the one stored on the aggregate. An
    answer arrives from outside and may come after its task is gone.
-7. Add `completeTask` and `cancelTask` calls to `Workflow`, one method per business event,
-   and keep the BPMN error code there as a constant.
+7. Add a `completeTask` call to `Workflow`, one method per answer. Nothing in the application
+   cancels the task. The interrupting timer does that.
 8. Add the callback endpoint which carries the task id. When the request goes out, log the URLs
    which continue the process.
 9. Copy `LoanApprovalIT` and write one test per way the task ends. Do not make a test wait for
@@ -116,14 +116,16 @@ you report a failure of that profile as a defect of the generated code.
 
 `LoanApprovalIT` proves the aspect and has to pass:
 
-- the surrounding system was asked once, the aggregate holds the task id, and the service task
-  behind the waiting one has NOT run. This proves that the task stays open,
-- after `completeTask` that service task has run,
-- after `cancelTask` the service task on the error path has run and the stored id is gone.
+- a reminder runs and the task stays open: the aggregate still holds the same task id, the
+  service task behind the deadline has not run, and an answer still completes the task,
+- an answer before the deadline completes the task: the service task behind it has run, and
+  the one behind the deadline has not,
+- without an answer the deadline takes the task away: the service task behind the deadline has
+  run, the one behind the answer has not, reminders ran before it, and on Camunda 7 the stored
+  id is gone.
 
 If the task is completed as soon as the handler returns, the model wires it in a way that does
-not let it stay open. On Camunda 7 that is `camunda:expression`. If the workflow ends in an
-incident instead of taking the error path, the error code in the code differs from the one in
-the model.
+not let it stay open. On Camunda 7 that is `camunda:expression`. If the first test finds the
+task gone after a reminder, the reminder interrupts: it needs `cancelActivity="false"`.
 
 Do not report success without having run this.

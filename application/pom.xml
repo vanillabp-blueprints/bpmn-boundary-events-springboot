@@ -96,5 +96,27 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>operaton</id>
+      <properties>
+        <bpms>operaton</bpms>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>io.vanillabp</groupId>
+          <artifactId>operaton-adapter-spring-boot</artifactId>
+          <version>${operaton-adapter.version}</version>
+        </dependency>
+        <!--
+          Operaton's Cockpit, Tasklist and Admin at /operaton. Optional, like the web
+          applications of the camunda7 profile.
+        -->
+        <dependency>
+          <groupId>io.vanillabp</groupId>
+          <artifactId>operaton-adapter-spring-boot-webapps</artifactId>
+          <version>${operaton-adapter.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 </project>

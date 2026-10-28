@@ -1,0 +1,9 @@
+# Everything specific to Operaton, loaded only while the 'operaton' profile applies. The
+# Maven profile of the same name activates it for the test as well.
+vanillabp:
+  adapters:
+    operaton:
+      # The same mode as in the application's profile file, so this test runs the
+      # configuration the blueprint ships. Without this line the test would fall back to the
+      # default 'by-adapter' and address Operaton differently than the application does.
+      name-clash-avoidance: use-prefix

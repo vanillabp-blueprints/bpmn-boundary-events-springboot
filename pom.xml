@@ -36,6 +36,7 @@
     <!-- BPMS adapters are released independently of the platform, so they carry their own version. -->
     <camunda7-adapter.version>2.0.0-SNAPSHOT</camunda7-adapter.version>
     <camunda8-adapter.version>2.0.0-8.10-SNAPSHOT</camunda8-adapter.version>
+    <operaton-adapter.version>2.0.0-SNAPSHOT</operaton-adapter.version>
     <!--
       Which BPMS the build runs on, handed to the tests below. Canceling a user task is
       not supported by every BPMS, so one test has to know. This is the default matching

@@ -104,6 +104,14 @@ their `camunda:` attributes:
 mvn install verify -Poperaton
 ```
 
+[CIB seven](https://cibseven.org), a fork of Camunda 7 made by CIB software, is embedded as
+well and needs nothing else either. The BPMN files are the ones of Camunda 7, because CIB seven
+reads their `camunda:` attributes:
+
+```bash
+mvn install verify -Pcibseven
+```
+
 Start the application:
 
 ```bash

@@ -1,0 +1,31 @@
+# Everything specific to CIB seven, loaded only while the 'cibseven' profile is active. The
+# Maven profile of the same name activates it, so the BPMS is chosen once.
+#
+# CIB seven's web applications are served at /camunda by the adapter module this profile adds,
+# and they are configured here because the settings name the adapter id.
+vanillabp:
+  adapters:
+    cibseven:
+      # The identifiers of this workflow module are prefixed in the BPMS, which keeps modules
+      # apart without a tenant, and a BPMS is licensed per tenant. BPMN files, business code and
+      # configuration keep the plain names, the adapter translates at every boundary. Switching
+      # the mode of a running application is a migration rather than a setting.
+      name-clash-avoidance: use-prefix
+      webapps:
+        # A demo administrator, so the blueprint can be operated without setting one up.
+        # An application with an identity provider of its own leaves this section out and
+        # the web applications use that instead.
+        admin-user:
+          id: demo
+          password: demo
+          first-name: Demo
+          last-name: User
+
+# CIB seven's new webclient at /webapp comes with the web applications. It signs its
+# login tokens with this secret and does not start without one. The value is for the
+# demo only. A real application sets its own, the same on every instance, for example
+# from an environment variable. Make one with: openssl rand -base64 120 | tr -d '\n'
+cibseven:
+  webclient:
+    authentication:
+      jwtSecret: oZTyrJ3x7k5b7XHJplVywCce/uIHDPTz1r4UYZkRhh7RZmJjEhalX0V0cyf0+ceGj/0ynEoq+yOslcudCUyzCT9Jt3lrteFn9ZfeIUY8NIR84cd5rzOLg0te86nmVGmoNqiezm2wZ6Xk797SeoYGiNp+eY1nbNkm

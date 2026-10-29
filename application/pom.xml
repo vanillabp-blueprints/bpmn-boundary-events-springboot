@@ -118,5 +118,27 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>cibseven</id>
+      <properties>
+        <bpms>cibseven</bpms>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>io.vanillabp</groupId>
+          <artifactId>cibseven-adapter-spring-boot</artifactId>
+          <version>${cibseven-adapter.version}</version>
+        </dependency>
+        <!--
+          CIB seven's Cockpit, Tasklist and Admin at /camunda. Optional, like the web
+          applications of the camunda7 profile.
+        -->
+        <dependency>
+          <groupId>io.vanillabp</groupId>
+          <artifactId>cibseven-adapter-spring-boot-webapps</artifactId>
+          <version>${cibseven-adapter.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 </project>

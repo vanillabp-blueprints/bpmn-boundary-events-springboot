@@ -81,12 +81,16 @@ vanillabp:
     camunda8:
       # Camunda 8 is a remote engine: point this at your cluster.
       rest-address: http://localhost:8080
-      # This adapter leases the jobs it holds, so the cluster takes the answer of the current
-      # activation only. The key has no default, because a lease cannot be taken back. This is
-      # the value the adapter recommends:
+      # Camunda 8.10 can lose a leased job for a whole job-timeout. Until Camunda fixes that,
+      # the adapter advises against a lease. The key has no default:
       # https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
-      job-lease: use
+      job-lease: do-not-use
 ```
+
+The blueprint does not lease its jobs. On 8.10 the gateway of the cluster can lose a leased
+job when a long poll ends, and the job then waits for a whole `job-timeout`. Until Camunda
+fixes that, the adapter advises `do-not-use`, and moving to `use` later costs nothing. Why is
+[decision 88 of the Camunda 8 adapter](https://github.com/camunda-community-hub/vanillabp-camunda8-adapter/blob/main/DECISIONS.md#88-until-camunda-fixes-its-gateway-the-adapter-advises-against-a-lease-and-its-own-tests-keep-one).
 
 The file is loaded because the Maven profile `camunda8` sets the Spring profile of the same
 name. So you choose the engine once, on the Maven command line. The build, the tests and

@@ -94,6 +94,10 @@ public abstract class WorkflowModuleTest {
 
       await()
           .atMost(TIMEOUT)
+          // The first look comes at once. Awaitility would otherwise wait one poll interval
+          // before it, and that pause could hide a test which only passes because the BPMS
+          // had time to catch up.
+          .pollDelay(Duration.ZERO)
           .pollInterval(POLL_INTERVAL)
           .until(() -> {
             // A fresh read per poll - otherwise the writes of the BPMS' own transactions

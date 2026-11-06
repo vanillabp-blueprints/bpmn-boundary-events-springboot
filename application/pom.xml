@@ -67,7 +67,7 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>org.camunda.community.vanillabp</groupId>
+          <groupId>io.vanillabp</groupId>
           <artifactId>camunda7-adapter-spring-boot</artifactId>
           <version>${camunda7-adapter.version}</version>
         </dependency>
@@ -77,7 +77,7 @@
           applications leaves the dependency out.
         -->
         <dependency>
-          <groupId>org.camunda.community.vanillabp</groupId>
+          <groupId>io.vanillabp</groupId>
           <artifactId>camunda7-adapter-spring-boot-webapps</artifactId>
           <version>${camunda7-adapter.version}</version>
         </dependency>
@@ -90,7 +90,7 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>org.camunda.community.vanillabp</groupId>
+          <groupId>io.vanillabp</groupId>
           <artifactId>camunda8-adapter-spring-boot</artifactId>
           <version>${camunda8-adapter.version}</version>
         </dependency>

@@ -49,6 +49,20 @@
           </excludes>
         </configuration>
       </plugin>
+      <!--
+        The application brings the adapters, so the rule of the parent POM which keeps them
+        out of a workflow module is switched off here.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>no-adapter-in-a-workflow-module</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

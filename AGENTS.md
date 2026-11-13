@@ -79,8 +79,9 @@ in every blueprint. Copy them unchanged.
    `Service` for each of the two. Never complete the task there.
 5. Add the business methods to `Service`. The first returns early if the request went out
    already, and otherwise sends it and stores the id. The second drops the id when the task was
-   canceled. Then add one per answer the API accepts. Annotate the ones the API calls with
-   `@Transactional`, never the ones the task handler calls.
+   canceled. Then add one per answer the API accepts. Put `@Transactional` on the class
+   `Service`, so every method runs in a transaction. The ones the task handler calls join the
+   transaction of the task.
 6. Let the answering method reject a task id which is not the one stored on the aggregate. An
    answer arrives from outside and may come after its task is gone.
 7. Add a `completeTask` call to `Workflow`, one method per answer. Nothing in the application

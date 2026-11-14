@@ -32,16 +32,17 @@ neither of them.
 
 ## Core files
 
-|                                            File                                            |                                                   Why it matters                                                    |
-|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| `loan-approval/src/main/resources/loan-approval/processes/<adapter-id>/loan_approval.bpmn` | the waiting task, a NON-INTERRUPTING timer boundary event for the reminder and an INTERRUPTING one for the deadline |
-| `loan-approval/src/main/java/.../loanapproval/WorkflowTaskHandler.java`                    | the `@WorkflowTask` method of that task: aggregate, `@TaskId`, `@TaskEvent`. Returning does NOT complete the task   |
-| `loan-approval/src/main/java/.../loanapproval/Workflow.java`                               | `completeTask`. Nothing in the application cancels the task here, the timer does that                               |
-| `loan-approval/src/main/java/.../loanapproval/Service.java`                                | sends the request once, keeps the task id, answers the task when the surrounding system replies                     |
-| `loan-approval/src/main/java/.../loanapproval/PartnerApprovalClient.java`                  | the port to the surrounding system, so a test can put a simulator in its place                                      |
-| `loan-approval/src/main/java/.../loanapproval/ApiController.java`                          | the callback the answer arrives at, carrying the task id                                                            |
-| `loan-approval/src/main/java/.../loanapproval/model/Aggregate.java`                        | `partnerApprovalTaskId`, plus the attributes the service tasks behind the waiting task write                        |
-| `loan-approval/src/test/java/.../LoanApprovalIT.java`                                      | one test each: a reminder with the task still open, an answer in time, the deadline                                 |
+|                                            File                                            |                                                       Why it matters                                                       |
+|--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `loan-approval/src/main/resources/loan-approval/processes/<adapter-id>/loan_approval.bpmn` | the waiting task, a NON-INTERRUPTING timer boundary event for the reminder and an INTERRUPTING one for the deadline        |
+| `loan-approval/src/main/java/.../loanapproval/WorkflowTaskHandler.java`                    | the `@WorkflowTask` method of that task: aggregate, `@TaskId`, `@TaskEvent`. Returning does NOT complete the task          |
+| `loan-approval/src/main/java/.../loanapproval/Workflow.java`                               | `completeTask`. Nothing in the application cancels the task here, the timer does that                                      |
+| `loan-approval/src/main/java/.../loanapproval/Service.java`                                | sends the request once, keeps the task id, answers the task when the surrounding system replies                            |
+| `loan-approval/src/main/java/.../loanapproval/PartnerApprovalClient.java`                  | the port to the surrounding system, so a test can put a simulator in its place                                             |
+| `loan-approval/src/main/java/.../loanapproval/ApiController.java`                          | the callback the answer arrives at, carrying the task id                                                                   |
+| `loan-approval/src/main/resources/openapi/loan-approval.yaml`                              | the API as an OpenAPI file. The build generates the interface `LoanApprovalApi` from it, and `ApiController` implements it |
+| `loan-approval/src/main/java/.../loanapproval/model/Aggregate.java`                        | `partnerApprovalTaskId`, plus the attributes the service tasks behind the waiting task write                               |
+| `loan-approval/src/test/java/.../LoanApprovalIT.java`                                      | one test each: a reminder with the task still open, an answer in time, the deadline                                        |
 
 ## Boilerplate files
 

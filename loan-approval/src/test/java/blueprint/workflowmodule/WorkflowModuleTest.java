@@ -44,8 +44,31 @@ import org.springframework.data.repository.CrudRepository;
 @SpringBootTest
 public abstract class WorkflowModuleTest {
 
-  /** Generous on purpose: a slow CI machine must not turn into a flaky test. */
+  /**
+   * How long a test waits for what VanillaBP and the blueprint do themselves: a reply to a
+   * call of the API, a handler which ran, an aggregate which was written. Generous on
+   * purpose, so that a slow CI machine does not turn into a flaky test.
+   *
+   * <p>
+   * Use {@link #SCHEDULER_TIMEOUT} instead if the test waits for a timer of the model.
+   * </p>
+   */
   protected static final Duration TIMEOUT = Duration.ofSeconds(30);
+
+  /**
+   * How long a test waits for what the scheduler of a BPMS has to do: a timer which is due
+   * and has to fire. This is much longer than {@link #TIMEOUT}, because here the test does
+   * not wait for code. It waits for a pool of threads in the engine, and when many builds
+   * run on one machine, they all share it. A test which waits for a scheduler should fail
+   * because the thing did not happen, not because the machine was busy.
+   *
+   * <p>
+   * Choose it only for the steps which wait for a timer, and pass it to
+   * {@code awaitAggregate}. Every other step keeps {@link #TIMEOUT}, so that a real fault
+   * still shows up quickly.
+   * </p>
+   */
+  protected static final Duration SCHEDULER_TIMEOUT = Duration.ofMinutes(2);
 
   private static final Duration POLL_INTERVAL = Duration.ofMillis(200);
 
@@ -64,6 +87,28 @@ public abstract class WorkflowModuleTest {
       final Predicate<A> condition) {
 
     return awaitAggregate(repository::findById, id, condition);
+
+  }
+
+  /**
+   * Waits as long as the given time until the workflow aggregate exists and satisfies the
+   * given condition. Pass {@link #SCHEDULER_TIMEOUT} if the condition needs a timer of the
+   * model to fire.
+   *
+   * @param <A>        The type of the workflow aggregate.
+   * @param repository The repository of the workflow aggregate.
+   * @param id         The aggregate's ID, which is the natural ID of the business case.
+   * @param timeout    How long to wait, {@link #TIMEOUT} or {@link #SCHEDULER_TIMEOUT}.
+   * @param condition  What the process is expected to have achieved.
+   * @return The aggregate as it satisfied the condition.
+   */
+  protected <A> A awaitAggregate(
+      final CrudRepository<A, String> repository,
+      final String id,
+      final Duration timeout,
+      final Predicate<A> condition) {
+
+    return awaitAggregate(repository::findById, id, timeout, condition);
 
   }
 
@@ -88,12 +133,34 @@ public abstract class WorkflowModuleTest {
       final String id,
       final Predicate<A> condition) {
 
+    return awaitAggregate(load, id, TIMEOUT, condition);
+
+  }
+
+  /**
+   * Waits as long as the given time until the workflow aggregate exists and satisfies the
+   * given condition. Pass {@link #SCHEDULER_TIMEOUT} if the condition needs a timer of the
+   * model to fire.
+   *
+   * @param <A>       The type of the workflow aggregate.
+   * @param load      Loads the workflow aggregate by its ID.
+   * @param id        The aggregate's ID, which is the natural ID of the business case.
+   * @param timeout   How long to wait, {@link #TIMEOUT} or {@link #SCHEDULER_TIMEOUT}.
+   * @param condition What the process is expected to have achieved.
+   * @return The aggregate as it satisfied the condition.
+   */
+  protected <A> A awaitAggregate(
+      final Function<String, Optional<A>> load,
+      final String id,
+      final Duration timeout,
+      final Predicate<A> condition) {
+
     final var lastSeen = new AtomicReference<Optional<A>>(Optional.empty());
 
     try {
 
       await()
-          .atMost(TIMEOUT)
+          .atMost(timeout)
           // The first look comes at once. Awaitility would otherwise wait one poll interval
           // before it, and that pause could hide a test which only passes because the BPMS
           // had time to catch up.
@@ -115,7 +182,7 @@ public abstract class WorkflowModuleTest {
           "The workflow '"
               + id
               + "' did not reach the expected state within "
-              + TIMEOUT
+              + timeout
               + ". Last seen: "
               + lastSeen
                   .get()

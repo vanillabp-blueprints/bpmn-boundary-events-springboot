@@ -136,12 +136,15 @@
                   <excludes>
                     <exclude>io.vanillabp*:*-adapter-spring-boot*</exclude>
                     <exclude>io.vanillabp*:*-adapter-quarkus*</exclude>
+                    <!-- The Quarkus extension of VanillaBP belongs to the application, like an adapter. -->
+                    <exclude>io.vanillabp:vanillabp-quarkus-integration</exclude>
                   </excludes>
                   <includes>
                     <include>io.vanillabp*:*-adapter-spring-boot*:*:*:test</include>
                     <include>io.vanillabp*:*-adapter-quarkus*:*:*:test</include>
+                    <include>io.vanillabp:vanillabp-quarkus-integration:*:*:test</include>
                   </includes>
-                  <message>A workflow module depends on an adapter only in the test scope. The application brings the adapters.</message>
+                  <message>A workflow module depends on an adapter or on vanillabp-quarkus-integration only in the test scope. The application brings them.</message>
                 </bannedDependencies>
               </rules>
             </configuration>

@@ -43,6 +43,15 @@ when the BPMS gets to them. An engine which polls for due jobs may run two of th
 sweep. If a process is only correct when one of two events comes first, it will surprise
 somebody one day.
 
+Both events here are timers. A message boundary event works the same way, only the BPMS does
+not fire it by itself: your code correlates the message, as in
+[`bpmn-message-correlation`](https://github.com/vanillabp-blueprints/bpmn-message-correlation-springboot).
+Put that message definition on the boundary event and choose `cancelActivity` exactly as for a
+timer. A non-interrupting message boundary event adds a token like the reminder does. So what
+"How it works" says about that token holds for it, too. The one blueprint with a message
+boundary event is `cockpit-organizing-usertasks`, a blueprint for the Business Cockpit. There it
+interrupts a user task and leads back into it.
+
 ## Delta to the base blueprint
 
 Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-single-springboot):

@@ -13,7 +13,7 @@ vanillabp:
       # With a lease, the cluster takes the answer of the current activation only. But on
       # 8.10 the gateway can lose a leased job when a long poll ends, and the job then waits
       # for a whole job-timeout. Until Camunda fixes that, the adapter advises this value
-      # (decision 88 of the adapter), so the blueprint shows it. Moving to 'use' later costs
+      # (the wiki page below says why), so the blueprint shows it. Moving to 'use' later costs
       # nothing, because a job which was never leased can be leased at any time. The key has
       # no default. On a cluster before 8.10 it is read and does nothing:
       # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds

@@ -42,7 +42,11 @@ import org.awaitility.core.ConditionTimeoutException;
  */
 public abstract class Simulator {
 
-  private static final Duration TIMEOUT = Duration.ofSeconds(30);
+  /**
+   * As long as the wait for an aggregate: a call to a surrounding system may also come one
+   * retry of the outbox late (see {@link WorkflowModuleTest#TIMEOUT}).
+   */
+  private static final Duration TIMEOUT = WorkflowModuleTest.TIMEOUT;
 
   private static final Duration POLL_INTERVAL = Duration.ofMillis(200);
 

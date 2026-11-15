@@ -50,10 +50,21 @@ public abstract class WorkflowModuleTest {
    * purpose, so that a slow CI machine does not turn into a flaky test.
    *
    * <p>
+   * It is one minute, so that ONE retry of the outbox fits in. Two engine commands for the
+   * same workflow may collide, for example a message which is correlated while the user
+   * task is completed. Camunda 7 then rejects one of them with an optimistic locking error,
+   * and the outbox tries it again after {@code vanillabp.outbox.attempt-frequency}, which is
+   * thirty seconds by default. That is expected behaviour and not a fault, so it must not
+   * fail a test. The second retry comes a minute after the first one, and that is beyond
+   * this time. So a step which fails again and again still fails the test. A test which
+   * passes is not slower, because the wait ends as soon as the condition holds.
+   * </p>
+   *
+   * <p>
    * Use {@link #SCHEDULER_TIMEOUT} instead if the test waits for a timer of the model.
    * </p>
    */
-  protected static final Duration TIMEOUT = Duration.ofSeconds(30);
+  protected static final Duration TIMEOUT = Duration.ofMinutes(1);
 
   /**
    * How long a test waits for what the scheduler of a BPMS has to do: a timer which is due

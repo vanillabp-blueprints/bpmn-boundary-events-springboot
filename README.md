@@ -56,16 +56,21 @@ interrupts a user task and leads back into it.
 
 Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-single-springboot):
 
-|            File            |                                       What is different                                        |
-|----------------------------|------------------------------------------------------------------------------------------------|
-| `loan_approval.bpmn`       | a task waiting for a partner with TWO boundary events on it, one interrupting and one not      |
-| `WorkflowTaskHandler.java` | the method of the waiting task plus one per branch behind an event                             |
-| `Workflow.java`            | `completeTask` in addition to `startWorkflow`                                                  |
-| `Service.java`             | sends the request, sends reminders while it waits, answers the task, notes a missed deadline   |
-| `Aggregate.java`           | `partnerApprovalTaskId`, `remindersSent`, `timedOut`, and `@DynamicUpdate` for the side branch |
-| `LoanApprovalIT.java`      | a reminder leaving the task open, an answer in time, and the deadline ending the wait          |
-| `pom.xml`                  | hands the BPMS of the build to the tests, for the assertion about cancellations                |
-| `loan-approval.yaml`       | `concurrent-branches-reviewed`, which ends the startup warning about the second token          |
+|                        File                       |                                             What is different                                             |
+|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `loan_approval.bpmn`                              | a task waiting for a partner with TWO boundary events on it, one interrupting and one not                 |
+| `WorkflowTaskHandler.java`                        | the method of the waiting task plus one per branch behind an event                                        |
+| `Workflow.java`                                   | `completeTask` in addition to `startWorkflow`                                                             |
+| `Service.java`                                    | sends the request, sends reminders while it waits, answers the task, notes a missed deadline              |
+| `PartnerApprovalClient.java`                      | new: the port to the partner, so a test can replace it                                                    |
+| `LocalPartnerApprovalClient.java`                 | new: a stand-in partner, so the blueprint runs without one                                                |
+| `ApiController.java`                              | the callback carrying the partner's answer and the task id                                                |
+| `openapi/loan-approval.yaml`                      | the URL of that callback, `partner-approved/{taskId}`                                                     |
+| `Aggregate.java`                                  | `partnerApprovalTaskId`, `remindersSent`, `timedOut`, and `@DynamicUpdate` for the side branch            |
+| `LoanApprovalIT.java`                             | a reminder leaving the task open, an answer in time, and the deadline ending the wait                     |
+| `PartnerApprovalSimulator.java`, `Simulator.java` | new in the tests: the simulator which stands in for the partner, and its base class from the test harness |
+| `pom.xml`                                         | hands the BPMS of the build to the tests, for the assertion about cancellations                           |
+| `loan-approval.yaml`                              | `concurrent-branches-reviewed`, which ends the startup warning about the second token                     |
 
 ## Running it
 

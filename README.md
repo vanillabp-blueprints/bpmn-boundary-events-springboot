@@ -56,7 +56,7 @@ interrupts a user task and leads back into it.
 
 Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-single-springboot):
 
-|                        File                       |                                             What is different                                             |
+|                       File                        |                                             What is different                                             |
 |---------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | `loan_approval.bpmn`                              | a task waiting for a partner with TWO boundary events on it, one interrupting and one not                 |
 | `WorkflowTaskHandler.java`                        | the method of the waiting task plus one per branch behind an event                                        |

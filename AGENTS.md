@@ -43,6 +43,7 @@ neither of them.
 | `loan-approval/src/main/resources/openapi/loan-approval.yaml`                              | the API as an OpenAPI file. The build generates the interface `LoanApprovalApi` from it, and `ApiController` implements it |
 | `loan-approval/src/main/java/.../loanapproval/model/Aggregate.java`                        | `partnerApprovalTaskId`, plus the attributes the service tasks behind the waiting task write                               |
 | `loan-approval/src/test/java/.../LoanApprovalIT.java`                                      | one test each: a reminder with the task still open, an answer in time, the deadline                                        |
+| `loan-approval/src/main/resources/loan-approval/loan-approval.yaml`                        | `concurrent-branches-reviewed`, because the branches were checked and write different attributes                           |
 
 ## Boilerplate files
 
@@ -101,6 +102,13 @@ commits second writes back the values it read at its start, and the other branch
 without a word. **Put `@DynamicUpdate` on the aggregate of a workflow with a non-interrupting
 boundary event.** It makes Hibernate write only the columns which changed. Two branches which
 write the same attribute need a `@Version` column instead, or a different model.
+
+VanillaBP warns at startup about the second token, because the aggregate has no version
+attribute. It cannot see that the branches write different attributes. Once you have checked
+that they do, say so for the workflow with
+`vanillabp.workflow-modules.<workflow-module-id>.workflows.<bpmn-process-id>.concurrent-branches-reviewed: true`,
+as `loan-approval.yaml` does. The key is read at the workflow only. With a `@Version` column
+you need no key, because then VanillaBP does not warn.
 
 Never rely on the cancellation reaching your handler, because not every BPMS reports it.
 Answering a task that is gone does nothing. So your code has to be correct without hearing

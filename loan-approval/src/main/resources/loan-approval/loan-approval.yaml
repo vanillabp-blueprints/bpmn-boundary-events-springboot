@@ -6,3 +6,17 @@
 # application.
 loan-approval:
   rating-scale: 100
+
+# The non-interrupting reminder puts a second token into the process, and the aggregate has no
+# version attribute. So VanillaBP warns at startup that two branches may overwrite each other.
+# Here they do not: the reminder writes only remindersSent, the answer only partnerApproved and
+# the task id, and @DynamicUpdate on the aggregate writes nothing but the columns a branch
+# changed. VanillaBP cannot see that in the code, so the review is stated here, and the warning
+# stays silent. The key is read at the workflow only. Whoever changes the model or makes a
+# branch write another attribute checks again whether this line still holds.
+vanillabp:
+  workflow-modules:
+    loan-approval:
+      workflows:
+        loan_approval:
+          concurrent-branches-reviewed: true

@@ -69,7 +69,7 @@ Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-sin
 | `Aggregate.java`                                  | `partnerApprovalTaskId`, `remindersSent`, `timedOut`, and `@DynamicUpdate` for the side branch            |
 | `LoanApprovalIT.java`                             | a reminder leaving the task open, an answer in time, and the deadline ending the wait                     |
 | `PartnerApprovalSimulator.java`, `Simulator.java` | new in the tests: the simulator which stands in for the partner, and its base class from the test harness |
-| `pom.xml`                                         | hands the BPMS of the build to the tests, for the assertion about cancellations                           |
+| `pom.xml`, `loan-approval/pom.xml`                | hands the BPMS of the build to the tests, for the assertion about cancellations                           |
 | `loan-approval.yaml`                              | `concurrent-branches-reviewed`, which ends the startup warning about the second token                     |
 
 ## Running it

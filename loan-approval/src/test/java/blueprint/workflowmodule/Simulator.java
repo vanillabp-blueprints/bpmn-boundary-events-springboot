@@ -36,8 +36,8 @@ import org.awaitility.core.ConditionTimeoutException;
  * </pre>
  *
  * <p>
- * Part of the blueprint test harness: identical in every blueprint, kept in sync from
- * {@code templates/test-harness/springboot/} of the monorepo. Do not edit it here.
+ * Part of the test harness which every blueprint carries in the same form. In a project
+ * made from a blueprint it is a file of that project, so change it as the project needs.
  * </p>
  */
 public abstract class Simulator {

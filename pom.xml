@@ -44,6 +44,8 @@
       the default profile; the profiles of the workflow module override it.
     -->
     <blueprint.bpms>camunda7</blueprint.bpms>
+    <!-- Generates the Java interfaces of the APIs from their OpenAPI files. -->
+    <openapi-generator.version>7.27.0</openapi-generator.version>
   </properties>
 
   <dependencyManagement>

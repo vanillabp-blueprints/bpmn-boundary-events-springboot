@@ -58,6 +58,60 @@
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <!--
+        The API of this module is written as the OpenAPI file
+        'src/main/resources/openapi/loan-approval.yaml'. This plugin generates the Java interface
+        'LoanApprovalApi' from it, with the paths, the parameters and the answers. 'ApiController'
+        implements the interface and holds nothing but the code of each call.
+      -->
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>${openapi-generator.version}</version>
+        <!-- The settings every API of this module shares. -->
+        <configuration>
+          <generatorName>spring</generatorName>
+          <generateSupportingFiles>false</generateSupportingFiles>
+          <configOptions>
+            <useSpringBoot4>true</useSpringBoot4>
+            <!-- One interface per tag, named after it. -->
+            <useTags>true</useTags>
+            <!-- Only the interface. The controller implements it. -->
+            <interfaceOnly>true</interfaceOnly>
+            <skipDefaultInterface>true</skipDefaultInterface>
+            <!-- The paths in the file are complete, so the interface needs no path of its own. -->
+            <requestMappingMode>none</requestMappingMode>
+            <!-- A method returns the answer itself. Spring Boot turns it into the response. -->
+            <useResponseEntity>false</useResponseEntity>
+            <!-- No library beyond Spring Web and Jackson: no Swagger annotations, no bean validation. -->
+            <useRecords>true</useRecords>
+            <useJspecify>true</useJspecify>
+            <openApiNullable>false</openApiNullable>
+            <useBeanValidation>false</useBeanValidation>
+            <documentationProvider>none</documentationProvider>
+            <annotationLibrary>none</annotationLibrary>
+            <hideGenerationTimestamp>true</hideGenerationTimestamp>
+          </configOptions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>loan-approval-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/openapi/loan-approval.yaml</inputSpec>
+              <apiPackage>blueprint.workflowmodule.loanapproval.api</apiPackage>
+              <modelPackage>blueprint.workflowmodule.loanapproval.api.model</modelPackage>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <profiles>
     <profile>
       <id>camunda7</id>

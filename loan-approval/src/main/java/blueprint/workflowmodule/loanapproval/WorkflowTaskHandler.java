@@ -27,7 +27,7 @@ import io.vanillabp.spi.service.WorkflowTask;
  * boot naming the method.
  * </p>
  *
- * @see <a href="https://github.com/vanillabp/spi-for-java#wire-up-a-task">Wire up a task</a>
+ * @see <a href="https://github.com/vanillabp/spi-for-java/wiki/Wiring-a-task">Wire up a task</a>
  */
 @Component
 @WorkflowService(

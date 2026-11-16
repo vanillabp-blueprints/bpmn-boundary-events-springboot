@@ -69,7 +69,7 @@ public class Aggregate {
    * one makes a workflow started twice for the same business case a detectable
    * duplicate.
    *
-   * @see <a href="https://github.com/vanillabp/spi-for-java#natural-ids">Natural ids</a>
+   * @see <a href="https://github.com/vanillabp/spi-for-java/wiki/The-workflow-aggregate#natural-ids">Natural ids</a>
    */
   @Id
   private String loanRequestId;

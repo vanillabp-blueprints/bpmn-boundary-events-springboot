@@ -141,7 +141,7 @@ public class Service {
     log.info(
         "Loan approval '{}' waits for the partner, but not forever - the task carries a"
             + " deadline of ten seconds, and reminders go out while it runs:"
-            + "\n  Approved -> http://localhost:8080/api/loan-approval/{}/partner-approved/{}",
+            + "\n  Approved -> http://localhost:8080/loan-approval/api/{}/partner-approved/{}",
         loanApproval.getLoanRequestId(),
         loanApproval.getLoanRequestId(), taskId);
 

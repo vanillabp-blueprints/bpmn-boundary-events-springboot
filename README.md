@@ -144,7 +144,7 @@ explains the modes and what each of them costs.
 Start a loan approval. This is the only URL you need:
 
 ```
-http://localhost:8080/api/loan-approval/start?amount=5000
+http://localhost:8080/loan-approval/api/start?amount=5000
 ```
 
 The partner is asked, and from then on both clocks run:
@@ -154,7 +154,7 @@ Loan approval '0f7c…' started
 Credit rating of loan approval '0f7c…' is 50
 Partner was asked to approve loan approval '0f7c…' (5000 at a rating of 50)
 Loan approval '0f7c…' waits for the partner, but not forever - the task carries a deadline of ten seconds, and reminders go out while it runs:
-  Approved -> http://localhost:8080/api/loan-approval/0f7c…/partner-approved/1a2b…
+  Approved -> http://localhost:8080/loan-approval/api/0f7c…/partner-approved/1a2b…
 ```
 
 Reminders go out while nothing happens, and the task stays open. The engine decides how many

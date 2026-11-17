@@ -47,7 +47,7 @@ public class ApiController implements LoanApprovalApi {
     loanApproval.request(loanRequestId, amount);
 
     log.info(
-        "Show the result -> http://localhost:8080/api/loan-approval/{}",
+        "Show the result -> http://localhost:8080/loan-approval/api/{}",
         loanRequestId);
 
     return loanRequestId;

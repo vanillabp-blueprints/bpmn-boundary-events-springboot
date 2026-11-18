@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  *
  * <p>
- * The paths, the parameters and the answers come from {@link LoanApprovalApi}, the interface
- * the build generates from {@code src/main/resources/openapi/loan-approval.yaml}. This class
- * only implements it.
+ * The paths, the parameters and the answers come from {@link LoanApprovalApi}, the interface the
+ * build generates from {@code src/main/resources/loan-approval/openapi/loan-approval.yaml}. This
+ * class only implements it.
  * </p>
  */
 @Slf4j

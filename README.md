@@ -65,7 +65,7 @@ Compared to [`module-single`](https://github.com/vanillabp-blueprints/module-sin
 | `PartnerApprovalClient.java`                      | new: the port to the partner, so a test can replace it                                                    |
 | `LocalPartnerApprovalClient.java`                 | new: a stand-in partner, so the blueprint runs without one                                                |
 | `ApiController.java`                              | the callback carrying the partner's answer and the task id                                                |
-| `openapi/loan-approval.yaml`                      | the URL of that callback, `partner-approved/{taskId}`                                                     |
+| `loan-approval/openapi/loan-approval.yaml`        | the URL of that callback, `partner-approved/{taskId}`                                                     |
 | `Aggregate.java`                                  | `partnerApprovalTaskId`, `remindersSent`, `timedOut`, and `@DynamicUpdate` for the side branch            |
 | `LoanApprovalIT.java`                             | a reminder leaving the task open, an answer in time, and the deadline ending the wait                     |
 | `PartnerApprovalSimulator.java`, `Simulator.java` | new in the tests: the simulator which stands in for the partner, and its base class from the test harness |

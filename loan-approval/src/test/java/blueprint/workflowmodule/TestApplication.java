@@ -1,6 +1,7 @@
 package blueprint.workflowmodule;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * A workflow module is a JAR and cannot be started on its own, so testing it means
@@ -9,9 +10,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * adapter.
  *
  * <p>
- * It lives in the base package so that component scanning, entity scanning and Spring
- * Data repositories of the workflow module are found without configuration - exactly as
- * the real application does it.
+ * It scans nothing. The workflow module brings an auto-configuration, and that is how an
+ * application gets its beans. {@code @EnableAutoConfiguration} applies it, together with the
+ * database, the transaction manager and the BPMS adapter the test needs. A component scan
+ * here would test a wiring no application uses. A test which needs a bean of the test
+ * sources names it with {@code @Import}.
  * </p>
  *
  * <p>
@@ -19,6 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * made from a blueprint it is a file of that project, so change it as the project needs.
  * </p>
  */
-@SpringBootApplication
+@SpringBootConfiguration
+@EnableAutoConfiguration
 public class TestApplication {
 }

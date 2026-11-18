@@ -1,4 +1,4 @@
-package blueprint.workflowmodule;
+package blueprint.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

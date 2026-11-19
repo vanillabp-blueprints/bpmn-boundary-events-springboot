@@ -93,6 +93,8 @@
             <documentationProvider>none</documentationProvider>
             <annotationLibrary>none</annotationLibrary>
             <hideGenerationTimestamp>true</hideGenerationTimestamp>
+            <generateJsonIncludeAnnotations>false</generateJsonIncludeAnnotations>
+            <generateJsonSetterNullsAnnotations>false</generateJsonSetterNullsAnnotations>
           </configOptions>
         </configuration>
         <executions>

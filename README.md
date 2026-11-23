@@ -96,15 +96,18 @@ vanillabp:
     camunda8:
       # Camunda 8 is a remote engine: point this at your cluster.
       rest-address: http://localhost:8080
-      # Camunda 8.10 can lose a leased job for a whole job-timeout. Until Camunda fixes that,
-      # the adapter advises against a lease. The key has no default:
+      # With a lease, the cluster takes the answer of the current activation only. The key
+      # has no default. The 8.8 and 8.9 lines accept it and do nothing. On an 8.10 cluster
+      # older than 8.10.10, a leased job can wait a whole job-timeout for nobody, and the
+      # adapter warns at startup. Choose 'do-not-use' there. Moving to 'use' later costs
+      # nothing. The wiki says why:
       # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
       job-lease: do-not-use
 ```
 
-The blueprint does not lease its jobs. On 8.10 the gateway of the cluster can lose a leased
-job when a long poll ends, and the job then waits for a whole `job-timeout`. Until Camunda
-fixes that, the adapter advises `do-not-use`, and moving to `use` later costs nothing. The
+The blueprint does not lease its jobs, so it runs on every cluster of the line. On an 8.10
+cluster older than 8.10.10, a leased job can wait a whole `job-timeout` for nobody. The adapter
+then warns at startup, so choose `do-not-use` there. Moving to `use` later costs nothing. The
 [wiki of the Camunda 8 adapter](https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds) explains why.
 
 The file is loaded because the Maven profile `camunda8` sets the Spring profile of the same

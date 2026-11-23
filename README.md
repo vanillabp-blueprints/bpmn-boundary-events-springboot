@@ -99,15 +99,17 @@ vanillabp:
       # With a lease, the cluster takes the answer of the current activation only. The key
       # has no default. The 8.8 and 8.9 lines accept it and do nothing. On an 8.10 cluster
       # older than 8.10.10, a leased job can wait a whole job-timeout for nobody, and the
-      # adapter warns at startup. Choose 'do-not-use' there. Moving to 'use' later costs
-      # nothing. The wiki says why:
+      # adapter warns at startup. Choose 'do-not-use' there. The cluster never takes a
+      # lease off a job again. The wiki says why:
       # https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds
-      job-lease: do-not-use
+      job-lease: use
 ```
 
-The blueprint does not lease its jobs, so it runs on every cluster of the line. On an 8.10
+The blueprint leases its jobs. With a lease, the cluster takes the answer of the current
+activation only, so a run whose lock ran out cannot overwrite what a newer run wrote. On an 8.10
 cluster older than 8.10.10, a leased job can wait a whole `job-timeout` for nobody. The adapter
-then warns at startup, so choose `do-not-use` there. Moving to `use` later costs nothing. The
+then warns at startup, so choose `do-not-use` there. The cluster never takes a lease off a job
+again. The
 [wiki of the Camunda 8 adapter](https://github.com/vanillabp/camunda8-adapter/wiki/Configuration#a-job-somebody-else-holds) explains why.
 
 The file is loaded because the Maven profile `camunda8` sets the Spring profile of the same
